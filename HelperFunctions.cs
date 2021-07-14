@@ -1,6 +1,8 @@
 ﻿using System;
 using ConsoleTools;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,30 +65,79 @@ namespace Questionnaire_App
                 case MSelect.TakeQuestionnaire:
                     return;
                 case MSelect.ViewUserStats:
+                    currentUser.ViewStatistics();
                     return;
                 case MSelect.View10Questionnaires:
+                    currentUser.View10Questionnaires();
                     return;
                 case MSelect.CreateQuestionnaire:
                     string t;
-                    bool p;
+                    bool p = true;
+                    string d;
                     Console.WriteLine("Enter a title below!");
                     t = Console.ReadLine();
-                    Console.WriteLine("Make public?");
-                    p = Convert.ToBoolean(Console.ReadLine());
-                    currentUser.CreateQuestionnaire(t, p);
+                    Console.WriteLine("Make public?(y/n)");
+                    string inp = Console.ReadLine();
+                    if (inp != "y")
+                    {
+                        p = false;
+                    }
+                    Console.WriteLine("Enter the start date.(dd/mm/yy)");
+                    d = Console.ReadLine();
+                    DateTime start;
+                    DateTime end;
+                    Exception ex;
+                    (start, ex) = ValidateDateInput(d);
+                    if (ex != null)
+                    {
+                        throw ex;
+                    }
+                    Console.WriteLine("Enter the end date.(dd/mm/yy)");
+                    d = Console.ReadLine();
+                    (end, ex) = ValidateDateInput(d);
+                    if (ex != null)
+                    {
+                        throw ex;
+                    }
+                    currentUser.CreateQuestionnaire(t, p, (start, end));
                     return;
                 case MSelect.SearchQuestionnaires:
+                    string s;
+                    Console.WriteLine("enter title:");
+                    s = Console.ReadLine();
+                    (Questionnaire q, Exception e) = currentUser.SearchQuestionnaire(s);
+                    if (e == null)
+                    {
+                        Console.WriteLine("start taking questionnaire?(y/n)");
+                        s = Console.ReadLine();
+                        if (s == "y")
+                        {
+                            currentUser.TakeQuestionnaire(q);
+                        }
+                    }
                     return;
                 case MSelect.ViewQuestionnaireStats:
+                    string title;
+                    Console.WriteLine("Enter questionnaire title:");
+                    title = Console.ReadLine();
+                    currentUser.ViewStatisticsOfQuestionnaire(title);
                     return;
                 case MSelect.Register:
                     string registerName;
                     string registerPassword;
                     Console.WriteLine("Enter a username below!");
                     registerName = Console.ReadLine();
-                    Console.WriteLine("Enter your password below!");
-                    registerPassword = ReadPassword();
-                    currentUser.Register(registerName, registerPassword);
+                    var regex = new Regex("^[a-zA-Z0-9]*$");
+                    if (regex.Match(registerName).Success)
+                    {
+                        Console.WriteLine("Enter your password below!");
+                        registerPassword = ReadPassword();
+                        currentUser.Register(registerName, registerPassword);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid username.");
+                    }
                     return;
                 case MSelect.Login:
                     string loginName;
@@ -95,7 +146,7 @@ namespace Questionnaire_App
                     loginName = Console.ReadLine();
                     Console.WriteLine("Enter your password below!");
                     loginPassword = ReadPassword();
-                    RegisteredUser currentRegisteredUser = new(true, loginName, loginPassword, "", 0);
+                    RegisteredUser currentRegisteredUser = new(true, loginName, loginPassword, "", new List<string>());
                     currentRegisteredUser.Login(loginName, loginPassword);
                     return;
                 default:
@@ -127,7 +178,6 @@ namespace Questionnaire_App
                 }
                 info = Console.ReadKey(true);
             }
-            Console.WriteLine();
             return password;
         }
         public static JObject JObjectFromUser(IUser user)
@@ -137,8 +187,17 @@ namespace Questionnaire_App
             o[user.Username] = JObject.Parse(json);
             return o;
         }
-        public static User UserFromJObject(JObject o, string username)
+        public static User UserFromJObject(JObject o)
         {
+            string username = "";
+            foreach (JProperty p in o.Children())
+            {
+                JToken value = p.Value;
+                if (value.Type == JTokenType.Object)
+                {
+                    username = ((JObject)value).GetValue("Username").ToString();
+                }
+            }
             string json = o[username].ToString();
             User u = JsonConvert.DeserializeObject<User>(json);
             return u;
@@ -150,13 +209,23 @@ namespace Questionnaire_App
             o[q.title] = JObject.Parse(json);
             return o;
         }
-        public static Questionnaire QuestionnaireFromJObject(JObject o, string username)
+        public static Questionnaire QuestionnaireFromJObject(JObject o)
         {
-            string json = o[username].ToString();
+            string title = "";
+            foreach (JProperty p in o.Children())
+            {
+                JToken value = p.Value;
+                if (value.Type == JTokenType.Object)
+                {
+                    title = ((JObject)value).GetValue("title").ToString();
+                    Console.WriteLine(title);
+                }
+            }
+            string json = o[title].ToString();
             Questionnaire q = JsonConvert.DeserializeObject<Questionnaire>(json);
             return q;
         }
-        public static bool AddObjectToFile(JObject userObj, string jFile, string key)
+        public static bool AddUserToFile(JObject userObj, string jFile, string key)
         {
             bool success = false;
             string writeJson;
@@ -164,7 +233,7 @@ namespace Questionnaire_App
             {
                 string fileContent = File.ReadAllText(jFile);
                 JObject o = JObject.Parse(fileContent);
-                User u = UserFromJObject(userObj, key);
+                User u = UserFromJObject(userObj);
                 var json = JsonConvert.SerializeObject(u, Formatting.Indented);
                 if (!o.ContainsKey(key))
                 {
@@ -181,6 +250,65 @@ namespace Questionnaire_App
             }
             File.WriteAllText(jFile, writeJson);
             return success;
+        }
+        public static bool AddQuestionnaireToFile(JObject userObj, string jFile, string key)
+        {
+            bool success = false;
+            string writeJson;
+            if (File.Exists(jFile))
+            {
+                string fileContent = File.ReadAllText(jFile);
+                JObject o = JObject.Parse(fileContent);
+                Questionnaire u = QuestionnaireFromJObject(userObj);
+                var json = JsonConvert.SerializeObject(u, Formatting.Indented);
+                if (!o.ContainsKey(key))
+                {
+                    o.Add(u.title, JObject.Parse(json));
+                    success = true;
+                    writeJson = JsonConvert.SerializeObject(o, Formatting.Indented);
+                }
+                else return success;
+            }
+            else
+            {
+                writeJson = JsonConvert.SerializeObject(userObj, Formatting.Indented);
+                success = true;
+            }
+            File.WriteAllText(jFile, writeJson);
+            return success;
+        }
+        public static (DateTime, Exception) ValidateDateInput(string s)
+        {
+            DateTime dt;
+            Exception ex;
+            string[] formats = { "dd/MM/yy" , "MM/dd/yyyy hh:mm:ss"};
+            if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+            {
+                ex = null;
+            }
+            else
+            {
+                ex = new Exception("invalid date.");
+            }
+            return (dt, ex);
+        }
+        public static string CheckValidTimeframe((DateTime, DateTime) timeframe)
+        {
+            string result;
+
+            // startdate is later than today
+            if (timeframe.Item1 > DateTime.Now)
+            {
+                result = "early";
+            }
+            //enddate is earlier than today
+            else if (timeframe.Item2 < DateTime.Now)
+            {
+                result = "late";
+            }
+            else result = "valid";
+            
+            return result;
         }
     }
 }

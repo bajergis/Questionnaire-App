@@ -13,16 +13,20 @@ namespace Questionnaire_App
     {
         public string title;
         public string author;
-        public List<Question> questions;
         public bool isPublic;
         public string uuid;
-        public Questionnaire(string title, string author, List<Question> questions, bool isPublic, string uuid)
+        public (DateTime, DateTime) timeframe;
+        public List<Question> questions;
+        public int timesTaken;
+        public Questionnaire(string title, string author, List<Question> questions, bool isPublic, string uuid, (DateTime, DateTime) timeframe, int timesTaken)
         {
             this.title = title;
             this.author = author;
             this.questions = questions;
             this.isPublic = isPublic;
-            this.uuid = Guid.NewGuid().ToString();
+            this.timeframe = timeframe;
+            this.uuid = uuid;
+            this.timesTaken = timesTaken;
         }
 
         public void AddQuestions()
@@ -30,40 +34,32 @@ namespace Questionnaire_App
             for (int k = 0; ; k++)
             {
                 string userInput;
-                Console.WriteLine("enter title for question");
+                Console.WriteLine("enter question number " + (this.questions.Count+1));
                 userInput = Console.ReadLine();
-                Question newQuestion = new(questions.Count, userInput, new List<string>());
+                Question newQuestion = new(this.questions.Count, userInput, new List<Answer>());
                 for (int i = 0; i < 10; i++)
                 {
-                    Console.WriteLine("add new answer");
+                    Console.WriteLine("add answer number " + (newQuestion.answers.Count + 1));
                     userInput = Console.ReadLine();
                     newQuestion.AddNewAnswer(userInput);
-                    Console.WriteLine("add more answers? (y/n)");
-                    userInput = Console.ReadLine();
-                    if (userInput != "y")
+                    if (Enumerable.Range(2, 10).Contains(newQuestion.answers.Count))
                     {
-                        if (Enumerable.Range(2,10).Contains(newQuestion.answers.Count))
+                        Console.WriteLine("add more answers? (y/n)");
+                        userInput = Console.ReadLine();
+                        if (userInput != "y")
                         {
                             break;
-                        }
-                        else
-                        {
-                            Console.WriteLine("need at least 2 answers to finish adding answers");
                         }
                     }
                 }
                 questions.Add(newQuestion);
-                Console.WriteLine("add more questions? (y/n)");
-                userInput = Console.ReadLine();
-                if (userInput != "y")
+                if (this.questions.Count > 4)
                 {
-                    if (this.questions.Count > 4)
+                    Console.WriteLine("add more questions? (y/n)");
+                    userInput = Console.ReadLine();
+                    if (userInput != "y")
                     {
                         break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("need at least 5 questions to finish adding answers");
                     }
                 }
             }
@@ -72,9 +68,9 @@ namespace Questionnaire_App
         {
             string currentDir = Directory.GetCurrentDirectory();
             string jsonFile = currentDir + "/quizdata.json";
-            Questionnaire finalQuiz = new(this.title, this.author, this.questions, this.isPublic, this.uuid);
+            Questionnaire finalQuiz = new(this.title, this.author, this.questions, this.isPublic, this.uuid, this.timeframe, this.timesTaken);
             JObject r = HelperFunctions.JObjectFromQuestionnaire(finalQuiz);
-            bool success = HelperFunctions.AddObjectToFile(r, jsonFile, this.title);
+            bool success = HelperFunctions.AddQuestionnaireToFile(r, jsonFile, this.title);
             if (success)
             {
                 Console.WriteLine("Quiz creation successful!");
@@ -99,6 +95,10 @@ namespace Questionnaire_App
         public string GetUUID()
         {
             return this.uuid;
+        }
+        public List<Question> GetQuestions()
+        {
+            return this.questions;
         }
     }
 }
