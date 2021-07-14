@@ -15,8 +15,9 @@ namespace Questionnaire_App
     class HelperFunctions
     {
         public static MSelect menuSelection;
-        public static void ShowOptionMenuUnregistered(string[] args)
+        public static void ShowOptionMenuUnregistered()
         {
+            string[] args = Environment.GetCommandLineArgs();
             var menu = new ConsoleMenu(args, level: 0)
               .Add("Take Questionnaire", (thisMenu) => { Console.WriteLine("You selected taking a questionnaire!"); menuSelection = MSelect.TakeQuestionnaire; thisMenu.CloseMenu(); })
               .Add("View 10 Questionnaires", (thisMenu) => { Console.WriteLine("You selected viewing 10 questionnaires!"); menuSelection = MSelect.View10Questionnaires; thisMenu.CloseMenu(); })
@@ -36,8 +37,9 @@ namespace Questionnaire_App
 
             menu.Show();
         }
-        public static void ShowOptionMenuRegistered(string[] args)
+        public static void ShowOptionMenuRegistered()
         {
+            string[] args = Environment.GetCommandLineArgs();
             var menu = new ConsoleMenu(args, level: 0)
               .Add("Create Questionnaire", (thisMenu) => { Console.WriteLine("You selected creating a questionnaire!"); menuSelection = MSelect.CreateQuestionnaire; thisMenu.CloseMenu(); })
               .Add("Take Questionnaire", (thisMenu) => { Console.WriteLine("You selected taking a questionnaire!"); menuSelection = MSelect.TakeQuestionnaire; thisMenu.CloseMenu(); })
@@ -146,7 +148,7 @@ namespace Questionnaire_App
                     loginName = Console.ReadLine();
                     Console.WriteLine("Enter your password below!");
                     loginPassword = ReadPassword();
-                    RegisteredUser currentRegisteredUser = new(true, loginName, loginPassword, "", new List<string>());
+                    IUser currentRegisteredUser = new RegisteredUser(true, loginName, loginPassword, "", new List<string>());
                     currentRegisteredUser.Login(loginName, loginPassword);
                     return;
                 default:
@@ -309,6 +311,15 @@ namespace Questionnaire_App
             else result = "valid";
             
             return result;
+        }
+        public static void UpdateJson(string file, JObject o, string index)
+        {
+            string fileContent = File.ReadAllText(file);
+            JObject u = JObject.Parse(fileContent);
+            var json = JsonConvert.SerializeObject(o, Formatting.Indented);
+            u[index] = JObject.Parse(json);
+            string output = JsonConvert.SerializeObject(u, Formatting.Indented);
+            File.WriteAllText(file, output);
         }
     }
 }
