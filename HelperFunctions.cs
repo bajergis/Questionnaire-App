@@ -14,147 +14,95 @@ namespace Questionnaire_App
 {
     class HelperFunctions
     {
-        public static MSelect menuSelection;
-        public static void ShowOptionMenuUnregistered()
+        // Add To File
+        public static bool AddQuestionnaireToFile(JObject userObj, string jFile, string key)
         {
-            string[] args = Environment.GetCommandLineArgs();
-            var menu = new ConsoleMenu(args, level: 0)
-              .Add("Take Questionnaire", (thisMenu) => { Console.WriteLine("You selected taking a questionnaire!"); menuSelection = MSelect.TakeQuestionnaire; thisMenu.CloseMenu(); })
-              .Add("View 10 Questionnaires", (thisMenu) => { Console.WriteLine("You selected viewing 10 questionnaires!"); menuSelection = MSelect.View10Questionnaires; thisMenu.CloseMenu(); })
-              .Add("Search Questionnaires", (thisMenu) => { Console.WriteLine("You selected searching for questionnaires!"); menuSelection = MSelect.SearchQuestionnaires; thisMenu.CloseMenu(); })
-              .Add("View Stats", (thisMenu) => { Console.WriteLine("You selected viewing your statistics!"); menuSelection = MSelect.ViewUserStats; thisMenu.CloseMenu(); })
-              .Add("Log In", (thisMenu) => { Console.WriteLine("You selected log in!"); menuSelection = MSelect.Login; thisMenu.CloseMenu(); })
-              .Add("Register", (thisMenu) => { Console.WriteLine("You selected registering!"); menuSelection = MSelect.Register; thisMenu.CloseMenu(); })
-              .Add("Exit", () => Environment.Exit(0))
-              .Configure(config =>
-              {
-                  config.Selector = "--> ";
-                  config.EnableFilter = false;
-                  config.Title = "Unregistered User Menu";
-                  config.EnableWriteTitle = false;
-                  config.EnableBreadcrumb = true;
-              });
-
-            menu.Show();
-        }
-        public static void ShowOptionMenuRegistered()
-        {
-            string[] args = Environment.GetCommandLineArgs();
-            var menu = new ConsoleMenu(args, level: 0)
-              .Add("Create Questionnaire", (thisMenu) => { Console.WriteLine("You selected creating a questionnaire!"); menuSelection = MSelect.CreateQuestionnaire; thisMenu.CloseMenu(); })
-              .Add("Take Questionnaire", (thisMenu) => { Console.WriteLine("You selected taking a questionnaire!"); menuSelection = MSelect.TakeQuestionnaire; thisMenu.CloseMenu(); })
-              .Add("View 10 Questionnaires", (thisMenu) => { Console.WriteLine("You selected viewing 10 questionnaires!"); menuSelection = MSelect.View10Questionnaires; thisMenu.CloseMenu(); })
-              .Add("Search Questionnaires", (thisMenu) => { Console.WriteLine("You selected searching for questionnaires!"); menuSelection = MSelect.SearchQuestionnaires; thisMenu.CloseMenu(); })
-              .Add("View Stats", (thisMenu) => { Console.WriteLine("You selected viewing your statistics!"); menuSelection = MSelect.ViewUserStats; thisMenu.CloseMenu(); })
-              .Add("Register", (thisMenu) => { Console.WriteLine("You selected registering!"); menuSelection = MSelect.Register; thisMenu.CloseMenu(); })
-              .Add("View Stats of Questionnaire", (thisMenu) => { Console.WriteLine("You selected viewing the stats of a certain Questionnaire!"); menuSelection = MSelect.ViewQuestionnaireStats; thisMenu.CloseMenu(); })
-              .Add("Exit", () => Environment.Exit(0))
-              .Configure(config =>
-              {
-                  config.Selector = "--> ";
-                  config.EnableFilter = false;
-                  config.Title = "Registered User Menu";
-                  config.EnableWriteTitle = false;
-                  config.EnableBreadcrumb = true;
-              });
-
-            menu.Show();
-        }
-        public static void HandleSelection(IUser currentUser)
-        {
-            switch (menuSelection)
+            bool success = false;
+            string writeJson;
+            if (File.Exists(jFile))
             {
-                case MSelect.TakeQuestionnaire:
-                    return;
-                case MSelect.ViewUserStats:
-                    currentUser.ViewStatistics();
-                    return;
-                case MSelect.View10Questionnaires:
-                    currentUser.View10Questionnaires();
-                    return;
-                case MSelect.CreateQuestionnaire:
-                    string t;
-                    bool p = true;
-                    string d;
-                    Console.WriteLine("Enter a title below!");
-                    t = Console.ReadLine();
-                    Console.WriteLine("Make public?(y/n)");
-                    string inp = Console.ReadLine();
-                    if (inp != "y")
-                    {
-                        p = false;
-                    }
-                    Console.WriteLine("Enter the start date.(dd/mm/yy)");
-                    d = Console.ReadLine();
-                    DateTime start;
-                    DateTime end;
-                    Exception ex;
-                    (start, ex) = ValidateDateInput(d);
-                    if (ex != null)
-                    {
-                        throw ex;
-                    }
-                    Console.WriteLine("Enter the end date.(dd/mm/yy)");
-                    d = Console.ReadLine();
-                    (end, ex) = ValidateDateInput(d);
-                    if (ex != null)
-                    {
-                        throw ex;
-                    }
-                    currentUser.CreateQuestionnaire(t, p, (start, end));
-                    return;
-                case MSelect.SearchQuestionnaires:
-                    string s;
-                    Console.WriteLine("enter title:");
-                    s = Console.ReadLine();
-                    (Questionnaire q, Exception e) = currentUser.SearchQuestionnaire(s);
-                    if (e == null)
-                    {
-                        Console.WriteLine("start taking questionnaire?(y/n)");
-                        s = Console.ReadLine();
-                        if (s == "y")
-                        {
-                            currentUser.TakeQuestionnaire(q);
-                        }
-                    }
-                    return;
-                case MSelect.ViewQuestionnaireStats:
-                    string title;
-                    Console.WriteLine("Enter questionnaire title:");
-                    title = Console.ReadLine();
-                    currentUser.ViewStatisticsOfQuestionnaire(title);
-                    return;
-                case MSelect.Register:
-                    string registerName;
-                    string registerPassword;
-                    Console.WriteLine("Enter a username below!");
-                    registerName = Console.ReadLine();
-                    var regex = new Regex("^[a-zA-Z0-9]*$");
-                    if (regex.Match(registerName).Success)
-                    {
-                        Console.WriteLine("Enter your password below!");
-                        registerPassword = ReadPassword();
-                        currentUser.Register(registerName, registerPassword);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid username.");
-                    }
-                    return;
-                case MSelect.Login:
-                    string loginName;
-                    string loginPassword;
-                    Console.WriteLine("Enter a username below!");
-                    loginName = Console.ReadLine();
-                    Console.WriteLine("Enter your password below!");
-                    loginPassword = ReadPassword();
-                    IUser currentRegisteredUser = new RegisteredUser(true, loginName, loginPassword, "", new List<string>());
-                    currentRegisteredUser.Login(loginName, loginPassword);
-                    return;
-                default:
-                    throw new Exception("no enum selected");
+                string fileContent = File.ReadAllText(jFile);
+                JObject o = JObject.Parse(fileContent);
+                Questionnaire u = QuestionnaireFromJObject(userObj);
+                var json = JsonConvert.SerializeObject(u, Formatting.Indented);
+                if (!o.ContainsKey(key))
+                {
+                    o.Add(u.uuid, JObject.Parse(json));
+                    success = true;
+                    writeJson = JsonConvert.SerializeObject(o, Formatting.Indented);
+                }
+                else return success;
             }
+            else
+            {
+                writeJson = JsonConvert.SerializeObject(userObj, Formatting.Indented);
+                success = true;
+            }
+            File.WriteAllText(jFile, writeJson);
+            return success;
         }
+        public static bool AddUserToFile(JObject userObj, string jFile, string key)
+        {
+            bool success = false;
+            string writeJson;
+            if (File.Exists(jFile))
+            {
+                string fileContent = File.ReadAllText(jFile);
+                JObject o = JObject.Parse(fileContent);
+                User u = UserFromJObject(userObj);
+                var json = JsonConvert.SerializeObject(u, Formatting.Indented);
+                if (!o.ContainsKey(key))
+                {
+                    o.Add(u.Uuid, JObject.Parse(json));
+                    success = true;
+                    writeJson = JsonConvert.SerializeObject(o, Formatting.Indented);
+                }
+                else return success;
+            }
+            else
+            {
+                writeJson = JsonConvert.SerializeObject(userObj, Formatting.Indented);
+                success = true;
+            }
+            File.WriteAllText(jFile, writeJson);
+            return success;
+        }
+
+        // Convert To JObject
+        public static JObject JObjectFromQuestionnaire(Questionnaire q)
+        {
+            JObject o = new();
+            var json = JsonConvert.SerializeObject(q, Formatting.Indented);
+            o[q.uuid] = JObject.Parse(json);
+            return o;
+        }
+        public static JObject JObjectFromUser(IUser user)
+        {
+            JObject o = new();
+            var json = JsonConvert.SerializeObject(user, Formatting.Indented);
+            o[user.Uuid] = JObject.Parse(json);
+            return o;
+        }
+
+        // Convert To Questionnaire
+        public static Questionnaire QuestionnaireFromJObject(JObject o)
+        {
+            string uuid = "";
+            foreach (JProperty p in o.Children())
+            {
+                JToken value = p.Value;
+                if (value.Type == JTokenType.Object)
+                {
+                    uuid = ((JObject)value).GetValue("uuid").ToString();
+                    Console.WriteLine(uuid);
+                }
+            }
+            string json = o[uuid].ToString();
+            Questionnaire q = JsonConvert.DeserializeObject<Questionnaire>(json);
+            return q;
+        }
+
+        // Hide Password Input
         public static string ReadPassword()
         {
             string password = "";
@@ -182,109 +130,41 @@ namespace Questionnaire_App
             }
             return password;
         }
-        public static JObject JObjectFromUser(IUser user)
+
+        // Update JSON after Questionnaire
+        public static void UpdateJson(string file, JObject o, string index)
         {
-            JObject o = new();
-            var json = JsonConvert.SerializeObject(user, Formatting.Indented);
-            o[user.Username] = JObject.Parse(json);
-            return o;
+            string fileContent = File.ReadAllText(file);
+            JObject u = JObject.Parse(fileContent);
+            var json = JsonConvert.SerializeObject(o, Formatting.Indented);
+            u[index] = JObject.Parse(json);
+            string output = JsonConvert.SerializeObject(u, Formatting.Indented);
+            File.WriteAllText(file, output);
         }
+
+        // Convert To User
         public static User UserFromJObject(JObject o)
         {
-            string username = "";
+            string uuid = "";
             foreach (JProperty p in o.Children())
             {
                 JToken value = p.Value;
                 if (value.Type == JTokenType.Object)
                 {
-                    username = ((JObject)value).GetValue("Username").ToString();
+                    uuid = ((JObject)value).GetValue("Uuid").ToString();
                 }
             }
-            string json = o[username].ToString();
+            string json = o[uuid].ToString();
             User u = JsonConvert.DeserializeObject<User>(json);
             return u;
         }
-        public static JObject JObjectFromQuestionnaire(Questionnaire q)
-        {
-            JObject o = new();
-            var json = JsonConvert.SerializeObject(q, Formatting.Indented);
-            o[q.title] = JObject.Parse(json);
-            return o;
-        }
-        public static Questionnaire QuestionnaireFromJObject(JObject o)
-        {
-            string title = "";
-            foreach (JProperty p in o.Children())
-            {
-                JToken value = p.Value;
-                if (value.Type == JTokenType.Object)
-                {
-                    title = ((JObject)value).GetValue("title").ToString();
-                    Console.WriteLine(title);
-                }
-            }
-            string json = o[title].ToString();
-            Questionnaire q = JsonConvert.DeserializeObject<Questionnaire>(json);
-            return q;
-        }
-        public static bool AddUserToFile(JObject userObj, string jFile, string key)
-        {
-            bool success = false;
-            string writeJson;
-            if (File.Exists(jFile))
-            {
-                string fileContent = File.ReadAllText(jFile);
-                JObject o = JObject.Parse(fileContent);
-                User u = UserFromJObject(userObj);
-                var json = JsonConvert.SerializeObject(u, Formatting.Indented);
-                if (!o.ContainsKey(key))
-                {
-                    o.Add(u.Username, JObject.Parse(json));
-                    success = true;
-                    writeJson = JsonConvert.SerializeObject(o, Formatting.Indented);
-                }
-                else return success;
-            }
-            else
-            {
-                writeJson = JsonConvert.SerializeObject(userObj, Formatting.Indented);
-                success = true;
-            }
-            File.WriteAllText(jFile, writeJson);
-            return success;
-        }
-        public static bool AddQuestionnaireToFile(JObject userObj, string jFile, string key)
-        {
-            bool success = false;
-            string writeJson;
-            if (File.Exists(jFile))
-            {
-                string fileContent = File.ReadAllText(jFile);
-                JObject o = JObject.Parse(fileContent);
-                Questionnaire u = QuestionnaireFromJObject(userObj);
-                var json = JsonConvert.SerializeObject(u, Formatting.Indented);
-                if (!o.ContainsKey(key))
-                {
-                    o.Add(u.title, JObject.Parse(json));
-                    success = true;
-                    writeJson = JsonConvert.SerializeObject(o, Formatting.Indented);
-                }
-                else return success;
-            }
-            else
-            {
-                writeJson = JsonConvert.SerializeObject(userObj, Formatting.Indented);
-                success = true;
-            }
-            File.WriteAllText(jFile, writeJson);
-            return success;
-        }
+
+        // Check for Valid Date
         public static (DateTime, Exception) ValidateDateInput(string s)
         {
-            DateTime dt;
             Exception ex;
             string[] formats = { "dd/MM/yy" , "MM/dd/yyyy hh:mm:ss"};
-            if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
+            if (DateTime.TryParseExact(s, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dt))
             {
                 ex = null;
             }
@@ -294,6 +174,8 @@ namespace Questionnaire_App
             }
             return (dt, ex);
         }
+
+        // Check if Questionnaire is Blocked
         public static string CheckValidTimeframe((DateTime, DateTime) timeframe)
         {
             string result;
@@ -311,15 +193,6 @@ namespace Questionnaire_App
             else result = "valid";
             
             return result;
-        }
-        public static void UpdateJson(string file, JObject o, string index)
-        {
-            string fileContent = File.ReadAllText(file);
-            JObject u = JObject.Parse(fileContent);
-            var json = JsonConvert.SerializeObject(o, Formatting.Indented);
-            u[index] = JObject.Parse(json);
-            string output = JsonConvert.SerializeObject(u, Formatting.Indented);
-            File.WriteAllText(file, output);
         }
     }
 }

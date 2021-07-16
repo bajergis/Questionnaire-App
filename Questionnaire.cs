@@ -11,13 +11,13 @@ namespace Questionnaire_App
 {
     class Questionnaire
     {
-        public string title;
         public string author;
         public bool isPublic;
-        public string uuid;
-        public (DateTime, DateTime) timeframe;
         public List<Question> questions;
+        public (DateTime, DateTime) timeframe;
         public int timesTaken;
+        public string title;
+        public string uuid;
         public Questionnaire(string title, string author, List<Question> questions, bool isPublic, string uuid, (DateTime, DateTime) timeframe, int timesTaken)
         {
             this.title = title;
@@ -29,6 +29,7 @@ namespace Questionnaire_App
             this.timesTaken = timesTaken;
         }
 
+        // Let User Add Questions to Object Lost of Questionnaire
         public void AddQuestions()
         {
             for (int k = 0; ; k++)
@@ -64,6 +65,8 @@ namespace Questionnaire_App
                 }
             }
         }
+
+        // Write the Questionnaire Into a File
         public void FinalizeQuestionnaire()
         {
             string currentDir = Directory.GetCurrentDirectory();
@@ -80,10 +83,6 @@ namespace Questionnaire_App
                 Console.WriteLine("Couldn't create quiz.");
             }
         }
-        public string GetTitle()
-        {
-            return this.title;
-        }
         public string GetAuthor()
         {
             return this.author;
@@ -92,13 +91,17 @@ namespace Questionnaire_App
         {
             return this.isPublic;
         }
-        public string GetUUID()
-        {
-            return this.uuid;
-        }
         public List<Question> GetQuestions()
         {
             return this.questions;
+        }
+        public string GetTitle()
+        {
+            return this.title;
+        }
+        public string GetUUID()
+        {
+            return this.uuid;
         }
     }
 }

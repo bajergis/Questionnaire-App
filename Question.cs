@@ -8,9 +8,9 @@ namespace Questionnaire_App
 {
     class Question
     {
+        public List<Answer> answers;
         public int questionID;
         public string title;
-        public List<Answer> answers;
 
         public Question(int questionID, string title, List<Answer> answers)
         {
@@ -18,7 +18,6 @@ namespace Questionnaire_App
             this.title = title;
             this.answers = answers;
         }
-
         public void AddNewAnswer(string answer)
         {
             if(this.answers.Count <= 10)
@@ -30,13 +29,13 @@ namespace Questionnaire_App
                 throw new Exception("maximum amount of answers reached.");
             }
         }
-        public string GetTitle()
-        {
-            return this.title;
-        }
         public List<Answer> GetAnswers()
         {
             return this.answers;
+        }
+        public string GetTitle()
+        {
+            return this.title;
         }
     }
 }
