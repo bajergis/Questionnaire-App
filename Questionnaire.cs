@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Questionnaire_App
 {
     class Questionnaire
     {
-        public string author;
-        public bool isPublic;
-        public List<Question> questions;
-        public (DateTime, DateTime) timeframe;
-        public int timesTaken;
-        public string title;
-        public string uuid;
+        private string author;
+        private bool isPublic;
+        private List<Question> questions;
+        private (DateTime, DateTime) timeframe;
+        private int timesTaken;
+        private string title;
+        private string uuid;
         public Questionnaire(string title, string author, List<Question> questions, bool isPublic, string uuid, (DateTime, DateTime) timeframe, int timesTaken)
         {
             this.title = title;
@@ -99,9 +96,45 @@ namespace Questionnaire_App
         {
             return this.title;
         }
+        public (DateTime, DateTime) GetTimeFrame()
+        {
+            return this.timeframe;
+        }
+        public int GetTimesTaken()
+        {
+            return this.timesTaken;
+        }
         public string GetUUID()
         {
             return this.uuid;
+        }
+        public void SetAuthor(string author)
+        {
+            this.author = author;
+        }
+        public void SetIsPublic(bool isPublic)
+        {
+            this.isPublic = isPublic;
+        }
+        public void GetQuestions(List<Question> questions)
+        {
+            this.questions = questions;
+        }
+        public void SetTitle(string title)
+        {
+            this.title = title;
+        }
+        public void SetTimeFrame((DateTime, DateTime) timeframe)
+        {
+            this.timeframe = timeframe;
+        }
+        public void SetTimesTaken(int timesTaken)
+        {
+            this.timesTaken = timesTaken;
+        }
+        public void SetUUID(string uuid)
+        {
+            this.uuid = uuid;
         }
     }
 }

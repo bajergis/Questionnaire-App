@@ -1,10 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ConsoleTools;
 
 namespace Questionnaire_App
 {
@@ -15,7 +10,7 @@ namespace Questionnaire_App
             string uuid;
             Console.WriteLine("This is Jay's Questionaire App!");
             uuid = System.Guid.NewGuid().ToString();
-            IUser currentUser = new User(true, "jsn", "swag", uuid, new List<string> { "default questionnaire 1" });
+            IUser currentUser = new User(true, "nulluser", "password", uuid, new List<string> {});
             Console.WriteLine("Press any key...");
             Console.ReadKey();
             currentUser.GenerateMenu();

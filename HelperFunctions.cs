@@ -1,21 +1,18 @@
 ﻿using System;
-using ConsoleTools;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Runtime.CompilerServices;
+
+[assembly:InternalsVisibleTo("UnitTests")]
 
 namespace Questionnaire_App
 {
-    class HelperFunctions
+    internal class HelperFunctions
     {
         // Add To File
-        public static bool AddQuestionnaireToFile(JObject userObj, string jFile, string key)
+        internal static bool AddQuestionnaireToFile(JObject userObj, string jFile, string key)
         {
             bool success = false;
             string writeJson;
@@ -27,7 +24,7 @@ namespace Questionnaire_App
                 var json = JsonConvert.SerializeObject(u, Formatting.Indented);
                 if (!o.ContainsKey(key))
                 {
-                    o.Add(u.uuid, JObject.Parse(json));
+                    o.Add(u.GetUUID(), JObject.Parse(json));
                     success = true;
                     writeJson = JsonConvert.SerializeObject(o, Formatting.Indented);
                 }
@@ -41,7 +38,7 @@ namespace Questionnaire_App
             File.WriteAllText(jFile, writeJson);
             return success;
         }
-        public static bool AddUserToFile(JObject userObj, string jFile, string key)
+        internal static bool AddUserToFile(JObject userObj, string jFile, string key)
         {
             bool success = false;
             string writeJson;
@@ -69,14 +66,14 @@ namespace Questionnaire_App
         }
 
         // Convert To JObject
-        public static JObject JObjectFromQuestionnaire(Questionnaire q)
+        internal static JObject JObjectFromQuestionnaire(Questionnaire q)
         {
             JObject o = new();
             var json = JsonConvert.SerializeObject(q, Formatting.Indented);
-            o[q.uuid] = JObject.Parse(json);
+            o[q.GetUUID()] = JObject.Parse(json);
             return o;
         }
-        public static JObject JObjectFromUser(IUser user)
+        internal static JObject JObjectFromUser(IUser user)
         {
             JObject o = new();
             var json = JsonConvert.SerializeObject(user, Formatting.Indented);
@@ -85,7 +82,7 @@ namespace Questionnaire_App
         }
 
         // Convert To Questionnaire
-        public static Questionnaire QuestionnaireFromJObject(JObject o)
+        internal static Questionnaire QuestionnaireFromJObject(JObject o)
         {
             string uuid = "";
             foreach (JProperty p in o.Children())
@@ -94,7 +91,6 @@ namespace Questionnaire_App
                 if (value.Type == JTokenType.Object)
                 {
                     uuid = ((JObject)value).GetValue("uuid").ToString();
-                    Console.WriteLine(uuid);
                 }
             }
             string json = o[uuid].ToString();
@@ -103,7 +99,7 @@ namespace Questionnaire_App
         }
 
         // Hide Password Input
-        public static string ReadPassword()
+        internal static string ReadPassword()
         {
             string password = "";
 
@@ -132,7 +128,7 @@ namespace Questionnaire_App
         }
 
         // Update JSON after Questionnaire
-        public static void UpdateJson(string file, JObject o, string index)
+        internal static void UpdateJson(string file, JObject o, string index)
         {
             string fileContent = File.ReadAllText(file);
             JObject u = JObject.Parse(fileContent);
@@ -143,7 +139,7 @@ namespace Questionnaire_App
         }
 
         // Convert To User
-        public static User UserFromJObject(JObject o)
+        internal static User UserFromJObject(JObject o)
         {
             string uuid = "";
             foreach (JProperty p in o.Children())
@@ -160,7 +156,7 @@ namespace Questionnaire_App
         }
 
         // Check for Valid Date
-        public static (DateTime, Exception) ValidateDateInput(string s)
+        internal static (DateTime, Exception) ValidateDateInput(string s)
         {
             Exception ex;
             string[] formats = { "dd/MM/yy" , "MM/dd/yyyy hh:mm:ss"};
@@ -176,7 +172,7 @@ namespace Questionnaire_App
         }
 
         // Check if Questionnaire is Blocked
-        public static string CheckValidTimeframe((DateTime, DateTime) timeframe)
+        internal static string CheckValidTimeframe((DateTime, DateTime) timeframe)
         {
             string result;
 

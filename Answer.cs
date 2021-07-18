@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Questionnaire_App
+﻿namespace Questionnaire_App
 {
     class Answer
     {
-        public string answer;
-        public int selected;
+        private string answer;
+        private int selected;
         public Answer(string answer, int selected)
         {
             this.answer = answer;
@@ -22,6 +16,14 @@ namespace Questionnaire_App
         public int GetSelected()
         {
             return this.selected;
+        }
+        public void SetAnswer(string answer)
+        {
+            this.answer = answer;
+        }
+        public void SetSelected(int selected)
+        {
+            this.selected = selected;
         }
     }
 }
